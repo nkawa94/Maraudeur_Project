@@ -4,19 +4,24 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+import time
 # Definition des paramètres de notre fénetre
 mainApp = Tk()
 mainApp.title("Carte du marraudeur")
 mainApp.geometry("640x400")
 mainApp.resizable(width=False, height=False)
-
+flag = 0
 # Fonction relative aux options de notre fenetre
+def function():
+	donnee.delete(ALL)
+	Texte = donnee.create_text(350, 50, text="En Attente de données...", font="Arial 16 italic", fill="blue")
+	start.configure(state='disabled')
 def Start():
-	photo = PhotoImage(file='Sortilège_Homonculus.gif')
-	#Texte = Label(donnee, text="Demarrage de l'application...")
-	donnee.config(image=photo)
-	donnee.image=photo
-
+	Texte = donnee.create_text(370, 50, text="Démarrage de l'application...", font="Arial 16 italic", fill="blue")
+	donnee.after(3000, function)
+	
+	#time.sleep(1)
+	#Texte = donnee.create_text(370, 50, text="En Attente de données...", font="Arial 16 italic", fill="blue")
 def Save():
 	fichier = filedialog.asksaveasfile(title="Sauvegarder le fichier", filetypes=[('Fichier txt','.txt')])
 	print(fichier.name)
@@ -47,7 +52,7 @@ donnee = Canvas(mainApp,bg='dark grey',height=370, width=635)
 image = PhotoImage(file = 'la_carte_du_maraudeur.gif')
 donnee.create_image(70,80, anchor=NW, image=image)
 donnee.pack()
-start = Button(mainApp,text='Start', width =8, command=Start)
+start = Button(mainApp,text='Start',width =8, command=Start)
 start.pack(side=LEFT, padx=5)
 quit = Button(mainApp,text='Quit', width =8, command=Quit)
 quit.pack(side=LEFT)
