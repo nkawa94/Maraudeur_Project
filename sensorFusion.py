@@ -236,7 +236,7 @@ penul_g_R = 0
 def angle_distance(magX,magY,accY):
     last_y = magY[-1]
     last_x = magX[-1]
-    angle = 180*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi)
+    angle = 360*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi/2)
     penul_y = last_y
     penul_x = last_x
     #parameters calculate distance
