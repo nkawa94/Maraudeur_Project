@@ -1,15 +1,3 @@
-# coding: utf-8
-## @package FaBo9Axis_MPU9250
-#  This is a library for the FaBo 9AXIS I2C Brick.
-#
-#  http://fabo.io/202.html
-#
-#  Released under APACHE LICENSE, VERSION 2.0
-#
-#  http://www.apache.org/licenses/
-#
-#  FaBo <info@fabo.io>
-
 import smbus
 import time
 
@@ -92,8 +80,7 @@ AK8963_BIT_16 = 0x01
 ## smbus
 bus = smbus.SMBus(1)
 
-## ADXL345 class
-# Some class description
+## MPU9250 I2C Controll class
 class MPU9250:
 
     ## Constructor
@@ -101,7 +88,7 @@ class MPU9250:
     def __init__(self, address=SLAVE_ADDRESS):
         self.address = address
         self.configMPU9250(GFS_250, AFS_2G)
-        self.configAK8963(AK8963_MODE_C8HZ, AK8963_BIT_16)
+        self.configAK8963(AK8963_MODE_C100HZ, AK8963_BIT_16)
 
     ## Search Device
     #  @param [in] self The object pointer.
@@ -215,7 +202,7 @@ class MPU9250:
         y = round(y*self.ares, 3)
         z = round(z*self.ares, 3)
 
-        return {"x":x, "y":y, "z":z}
+        return {"x": -10*y, "y": -10*x, "z": 10*z}
 
     ## Read gyro
     #  @param [in] self The object pointer.
@@ -233,7 +220,7 @@ class MPU9250:
         y = round(y*self.gres, 3)
         z = round(z*self.gres, 3)
 
-        return {"x":x, "y":y, "z":z}
+        return {"x":y, "y":x, "z":-z}
 
     ## Read magneto
     #  @param [in] self The object pointer.
@@ -281,24 +268,3 @@ class MPU9250:
         if(value & (1 << 16 - 1)):
             value -= (1<<16)
         return value
-
-if __name__ == "__main__":
-    mpu9250 = MPU9250()
-
-    while True:
-        accel = mpu9250.readAccel()
-        print ("ax = ", (accel['x']))
-        print ("ay = ", (accel['y']))
-        print ("az = ", (accel['z']))
-        gyro = mpu9250.readGyro()
-        print ("gx = ", (gyro['x']))
-        print ("gy = ", (gyro['y']))
-        print ("gz = ", (gyro['z']))
-        mag = mpu9250.readMagnet()
-        print ("mx = ", (mag['x']))
-        print ("my = ", (mag['y']))
-        print ("mz = ", (mag['z']))
-        temp = mpu9250.readTemperature()
-        print ("temp = ", temp)
-        print
-        time.sleep(0.3)

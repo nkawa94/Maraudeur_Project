@@ -11,8 +11,6 @@ import time
 import sys
 import numpy as np
 import math
-from scipy.integrate import quad
-import matplotlib.pyplot as plt
 import os
 
 #Creating Object
@@ -75,8 +73,6 @@ filteredData = np.matrix([[0],[0],[0]])
 filteredRoll = []
 filteredPitch = []
 filteredYaw = []
-
-
 	
 #Functions for calculating Euler Angles	
 def accCalcEuler(sensorValues):
@@ -139,7 +135,6 @@ def getData(currentTime,gyroRollCorrection, gyroPitchCorrection, gyroYawCorrecti
 	return sensorValues
 	
 #Function for Kalman Filtering
-
 def kalmanFilter(sensorValues, magCorrectionMean, gyroYaw):
 	#tell python to modify global forms of variables
 	
@@ -192,42 +187,25 @@ def kalmanFilter(sensorValues, magCorrectionMean, gyroYaw):
 	
 #Calibration Sequence
 for i in range(100):  
-	
 	calSensorValues = getData(0,0,0,0)
 	
 	calAccEuler = accCalcEuler(calSensorValues)
 	calMagEuler = magCalcEuler(calSensorValues, calAccEuler, 0, -20)
 	magPsiValues.append(calMagEuler.item((2,0)))
 	time.sleep(.009)
+	
 magCorrectionMean = np.mean(magPsiValues)
-	#print("magCorrectionMean : {:.3f}".format(magCorrectionMean))
-	#print("")
-	#print("-------------------------------------------------")
+	
 gyroRollCorrection = np.mean(gyroRoll)
-        #print("gyroRollCorrection : {:.3f}".format(gyroRollCorrection))
+       
 gyroPitchCorrection = np.mean(gyroPitch)
-	#print(" gyroPitchCorrection : {:.3f}".format(gyroPitchCorrection))
+	
 gyroYawCorrection = np.mean(gyroYaw)
-	#print("gyroYawCorrection : {:.3f}".format(gyroYawCorrection))
-	#print("")
-	#print("-------------------------------------------------")
+	
 accXCorrection = np.mean(accX)
-	#print("accXCorrection : {:.3f}".format(accXCorrection))
+	
 accYCorrection = np.mean(accY)
-	#print("accYCorrection : {:.3f}".format(accYCorrection))
-	#print("")
-	#print("-------------------------------------------------")
-	#magXCorrection = np.mean(magX)
-	#magYCorrection = np.mean(magY)
-	#magZCorrection = np.mean(magZ)
-	#angle = math.atan2(magYCorrection,magXCorrection)*(180/math.pi)
-		
-	#print("L'angle vaut : {:.3f}".format(angle))
-	#print("magXCorrection : {:.3f}".format(magXCorrection))
-	#print("magYCorrection : {:.3f}".format(magYCorrection))
-	#print("magZCorrection : {:.3f}".format(magZCorrection))
-	#print("")
-	#print("****************//////////***********************")
+	
 	
 time.sleep(1)
 	
@@ -246,17 +224,30 @@ magX = []
 magY = []
 magZ = []
 	
+penul_y = 0
+penul_x = 0
+f = 0
 
-#times = []
-#dataSet = []
+penul_g_P = 0
+penul_g_Y = 0
+penul_g_R = 0
 
-#gyroYaw = []
-#gyroPitch = []
-#gyroRoll = []
-b = 0
-d = 0
-#accX = []
+#this function return angle and distance
+def angle_distance(magX,magY,accY):
+    last_y = magY[-1]
+    last_x = magX[-1]
+    angle = 180*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi)
+    penul_y = last_y
+    penul_x = last_x
+    #parameters calculate distance
+    e = accY[-1]*(0.5**2)/2    
+    g = np.mean([e,f])
+    g *=100 
+    distance = math.sqrt((g**2))
+    f = e
+    return angle, distance
 
+#Unit test 
 while True:
     sensorValues = getData(1,gyroRollCorrection,gyroPitchCorrection, gyroYawCorrection)
     gyroEulerAngle = gyroCalcEuler(sensorValues, gyroEulerAngle)
@@ -264,25 +255,34 @@ while True:
     gyroEulerPitch.append(math.degrees(gyroEulerAngle.item(1,0)))
     gyroEulerYaw.append(math.degrees(gyroEulerAngle.item(2,0)))
     
+    
     gyro = np.mean(gyroEulerAngle)
     gyroRo = np.mean(gyroEulerRoll)
     gyroPi = np.mean(gyroEulerPitch)
     gyroYa = np.mean(gyroEulerYaw)
     
-    print(magX)
-    print("ddddddddddddddddddddddddddddddddd")
-    a = magY[-1]
+    last_g_P = gyroEulerPitch[-1]
+    last_g_Y = gyroEulerYaw[-1]
+    last_g_R = gyroRoll[-1]
+    an_gy = 180*math.atan2(np.mean([last_g_P,penul_y]),np.mean([last_g_Y,penul_x]))/(math.pi)
+    penul_g_P = last_g_P
+    penul_g_Y = last_g_Y
+    penul_g_R = last_g_R
     
-    c = magX[-1]
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    last_y = magY[-1]
     
-    angle = math.atan2(np.mean([a,b]),np.mean([c,d]))*(360/math.pi)
-
+    last_x = magX[-1]
+    
+    angle = 180*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi)
     if angle<0:
-        angle+=180
+        angle +=360
+    
     print("l'angle vaut : {:.3f}".format(angle))
     print("++++++++++++++++-----*************")
-    b = a
-    d = c
+    penul_y = last_y
+    penul_x = last_x
+   
     print("AcceleX : {:.3f}".format(accX[-1]))
     print("AcceleY : {:.3f}".format(accY[-1]))
     print("AcceleZ : {:.3f}".format(accZ[-1]))
@@ -297,20 +297,13 @@ while True:
     accPi = np.mean(accEulerPitch)
     accYa = np.mean(accEulerYaw)
     
-
-    e = accX[-1]*(0.5**2)/2
-    e *=100
-
-    f = accY[-1]*(0.5**2)/2
-    f *=100
-
-    g = accZ[-1]*(0.5**2)/2
+    e = accY[-1]*(0.5**2)/2    
+    g = np.mean([e,f])
+    
     g *=100 
     
-    distance = math.sqrt((e**2)+(f**2))
-    print("distance en X : {:.3f}".format(e))
-    print("distance en Y : {:.3f}".format(f))
-    print("distance en Z : {:.3f}".format(g))
+    distance = math.sqrt((g**2))
+    f = e
     print("Vous avez parcouru : {:.3f} cm".format(distance))
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("")
@@ -333,19 +326,19 @@ while True:
     filteredRo = np.mean(filteredRoll)
     filteredPi = np.mean(filteredPitch)
     filteredYa = np.mean(filteredYaw)
+    
+    
 
     print("/////////////////////////////////////////")
-    print("val gyro = {:.3f}".format(gyro))
     print("val gyroRoll = {:.3f}".format(gyroRo))
     print("gyroPitch = {:.3f}".format(gyroPi))
     print("gyroYaw = {:.3f}".format(gyroYa))
+    print("angle retourné par gyro = {:.3f}".format(an_gy))
     print("*****************************************")
-    print("val acc = {:.3f}".format(acc))
     print("accRoll = {:.3f}".format(accRo))
     print("accPitch = {:.3f}".format(accPi))
     print("accYaw = {:.3f}".format(accYa))
     print("++++++++++++++++++++++++++++++++++++++++++")
-    print("val mag = {:.3f}".format(mag))
     print("magRoll = {:.3f}".format(magRo))
     print("magPitch = {:.3f}".format(magPi))
     print("magYaw = {:.3f}".format(magYa))
@@ -356,5 +349,5 @@ while True:
     print("filterYaw = {:.3f}".format(filteredYa))
     print("")
 
-    time.sleep(0.5)
+    time.sleep(1)
 
