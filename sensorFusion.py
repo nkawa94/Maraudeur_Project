@@ -274,9 +274,8 @@ while True:
     
     last_x = magX[-1]
     
-    angle = 180*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi)
-    if angle<0:
-        angle +=360
+    angle = 360*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi/2)
+
     
     print("l'angle vaut : {:.3f}".format(angle))
     print("++++++++++++++++-----*************")
