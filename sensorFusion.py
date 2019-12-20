@@ -181,7 +181,8 @@ def kalmanFilter(sensorValues, magCorrectionMean, gyroYaw):
 	state_estimate_degrees = state_estimate * (180/math.pi)
 	
 	return state_estimate_degrees
-	
+
+
 
 
 	
@@ -233,7 +234,11 @@ penul_g_Y = 0
 penul_g_R = 0
 
 #this function return angle and distance
-def angle_distance(magX,magY,accY):
+def angle_distance():
+    global penul_y
+    global penul_x
+    global f
+    sensorValues = getData(1,gyroRollCorrection,gyroPitchCorrection, gyroYawCorrection)
     last_y = magY[-1]
     last_x = magX[-1]
     angle = 360*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi/2)
@@ -246,107 +251,4 @@ def angle_distance(magX,magY,accY):
     distance = math.sqrt((g**2))
     f = e
     return angle, distance
-
-#Unit test 
-while True:
-    sensorValues = getData(1,gyroRollCorrection,gyroPitchCorrection, gyroYawCorrection)
-    gyroEulerAngle = gyroCalcEuler(sensorValues, gyroEulerAngle)
-    gyroEulerRoll.append(math.degrees(gyroEulerAngle.item(0,0)))
-    gyroEulerPitch.append(math.degrees(gyroEulerAngle.item(1,0)))
-    gyroEulerYaw.append(math.degrees(gyroEulerAngle.item(2,0)))
-    
-    
-    gyro = np.mean(gyroEulerAngle)
-    gyroRo = np.mean(gyroEulerRoll)
-    gyroPi = np.mean(gyroEulerPitch)
-    gyroYa = np.mean(gyroEulerYaw)
-    
-    last_g_P = gyroEulerPitch[-1]
-    last_g_Y = gyroEulerYaw[-1]
-    last_g_R = gyroRoll[-1]
-    an_gy = 180*math.atan2(np.mean([last_g_P,penul_y]),np.mean([last_g_Y,penul_x]))/(math.pi)
-    penul_g_P = last_g_P
-    penul_g_Y = last_g_Y
-    penul_g_R = last_g_R
-    
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    last_y = magY[-1]
-    
-    last_x = magX[-1]
-    
-    angle = 360*math.atan2(np.mean([last_y,penul_y]),np.mean([last_x,penul_x]))/(math.pi/2)
-
-    
-    print("l'angle vaut : {:.3f}".format(angle))
-    print("++++++++++++++++-----*************")
-    penul_y = last_y
-    penul_x = last_x
-   
-    print("AcceleX : {:.3f}".format(accX[-1]))
-    print("AcceleY : {:.3f}".format(accY[-1]))
-    print("AcceleZ : {:.3f}".format(accZ[-1]))
-    print("::::::::::::::::::::::::::::::::::::::")
-    accEulerAngle = accCalcEuler(sensorValues)
-    accEulerRoll.append(accEulerAngle.item((0,0)))
-    accEulerPitch.append(accEulerAngle.item((1,0)))
-    accEulerYaw.append(accEulerAngle.item((2,0)))
-    
-    acc = np.mean(accEulerAngle)
-    accRo = np.mean(accEulerRoll)
-    accPi = np.mean(accEulerPitch)
-    accYa = np.mean(accEulerYaw)
-    
-    e = accY[-1]*(0.5**2)/2    
-    g = np.mean([e,f])
-    
-    g *=100 
-    
-    distance = math.sqrt((g**2))
-    f = e
-    print("Vous avez parcouru : {:.3f} cm".format(distance))
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print("")
-    magEulerAngle = magCalcEuler(sensorValues, accEulerAngle,magCorrectionMean, gyroEulerAngle.item((2,0)))
-    magEulerRoll.append(magEulerAngle.item((0,0)))
-    magEulerPitch.append(magEulerAngle.item((1,0)))
-    magEulerYaw.append(magEulerAngle.item((2,0)))
-    
-    mag = np.mean(magEulerAngle)
-    magRo = np.mean(magEulerRoll)
-    magPi = np.mean(magEulerPitch)
-    magYa = np.mean(magEulerYaw)
-
-    filteredData = kalmanFilter(sensorValues, magCorrectionMean, math.degrees(gyroEulerAngle.item((2,0))))
-    filteredRoll.append(filteredData.item((0,0)))
-    filteredPitch.append(filteredData.item((1,0)))
-    filteredYaw.append(filteredData.item((2,0)))
-
-    filtered = np.mean(filteredData)
-    filteredRo = np.mean(filteredRoll)
-    filteredPi = np.mean(filteredPitch)
-    filteredYa = np.mean(filteredYaw)
-    
-    
-
-    print("/////////////////////////////////////////")
-    print("val gyroRoll = {:.3f}".format(gyroRo))
-    print("gyroPitch = {:.3f}".format(gyroPi))
-    print("gyroYaw = {:.3f}".format(gyroYa))
-    print("angle retourné par gyro = {:.3f}".format(an_gy))
-    print("*****************************************")
-    print("accRoll = {:.3f}".format(accRo))
-    print("accPitch = {:.3f}".format(accPi))
-    print("accYaw = {:.3f}".format(accYa))
-    print("++++++++++++++++++++++++++++++++++++++++++")
-    print("magRoll = {:.3f}".format(magRo))
-    print("magPitch = {:.3f}".format(magPi))
-    print("magYaw = {:.3f}".format(magYa))
-    print("-------------------------------------------")
-    print("filter = {:.3f}".format(filtered))
-    print("filterRoll = {:.3f}".format(filteredRo))
-    print("filterPitch = {:.3f}".format(filteredPi))
-    print("filterYaw = {:.3f}".format(filteredYa))
-    print("")
-
-    time.sleep(1)
 
